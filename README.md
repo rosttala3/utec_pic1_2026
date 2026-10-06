@@ -1,1 +1,2 @@
-# utec_pic1_2026
+# Código de cámara de corrosión inteligente - PIC1 2026 - UTEC
+
