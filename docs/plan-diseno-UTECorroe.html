@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UTECorroe — Plan de diseño de la app</title>
+<link rel="icon" href="UTECorroe-icono.svg" type="image/svg+xml">
+<style>
+:root{
+  --bg:#f4f5f6; --card:#fff; --ink:#1f2428; --mute:#5d666e; --line:#d9dde1;
+  --metal:#8a939c; --metal-d:#4a525a; --rust:#b4501c; --rust-l:#e7a36f; --celeste:#00AEEF;
+  --ok:#2e7d4f; --warn:#c07a00; --err:#b3261e;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]){--bg:#15181b;--card:#1e2327;--ink:#e8ebee;--mute:#9aa4ad;--line:#33393f;--metal:#9aa4ad;--metal-d:#c4ccd3;--rust-l:#d08a56}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px 64px}
+header{display:flex;gap:20px;align-items:center;padding:32px 0 8px;flex-wrap:wrap}
+header img{width:112px;height:112px;border-radius:24px;border:1px solid var(--line);background:#fff}
+h1{margin:0;font-size:2.2rem;letter-spacing:-.02em}
+h1 b{color:var(--rust)}
+.sub{color:var(--mute);margin:.2rem 0 0}
+nav{display:flex;gap:6px 14px;flex-wrap:wrap;margin:18px 0 8px;padding:10px 0;border-block:1px solid var(--line);font-size:.9rem}
+nav a{color:var(--mute);text-decoration:none} nav a:hover{color:var(--rust)}
+section{margin-top:40px}
+h2{font-size:1.45rem;margin:0 0 4px;letter-spacing:-.01em}
+h2 span{color:var(--rust);font-variant-numeric:tabular-nums;margin-right:8px}
+h3{font-size:1.05rem;margin:24px 0 6px}
+p{margin:.5em 0}
+.lead{color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+table{border-collapse:collapse;width:100%;font-size:.92rem;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);background:color-mix(in srgb,var(--line) 35%,transparent)}
+tr:last-child td{border-bottom:0}
+.tw{overflow-x:auto}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:color-mix(in srgb,var(--metal) 18%,transparent);padding:1px 5px;border-radius:4px}
+.pill{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.pill.p{border-color:var(--warn);color:var(--warn)}
+.sw{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.sw div{width:120px;font-size:.78rem;color:var(--mute)}
+.sw i{display:block;height:44px;border-radius:8px;border:1px solid var(--line);margin-bottom:4px}
+/* phones */
+.phones{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px}
+.ph{width:250px;flex:0 0 auto}
+.ph>b{display:block;font-size:.85rem;margin-bottom:6px}
+.scr{height:470px;border:6px solid #2a2f34;border-radius:28px;background:var(--card);overflow:hidden;display:flex;flex-direction:column;font-size:12px}
+.top{padding:10px 12px;background:linear-gradient(#e3e7ea,#c9cfd5);color:#22282d;display:flex;align-items:center;gap:8px;font-weight:600}
+.top img{width:20px;height:20px}
+.top .dot{margin-left:auto;width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.body{flex:1;padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.bar{display:flex;border-top:1px solid var(--line);font-size:10px;text-align:center}
+.bar span{flex:1;padding:7px 0;color:var(--mute)} .bar .on{color:var(--rust);font-weight:700}
+.m{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.m div{border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.m small{display:block;color:var(--mute);font-size:10px} .m strong{font-size:17px}
+.prog{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:42%;background:linear-gradient(90deg,var(--metal),var(--rust))}
+.btn{border-radius:8px;padding:8px;text-align:center;font-weight:600;background:var(--rust);color:#fff}
+.btn.o{background:none;border:1px solid var(--err);color:var(--err)}
+.step{border:1px solid var(--line);border-radius:8px;padding:6px 8px;display:flex;gap:6px;justify-content:space-between}
+.step.in{margin-left:14px;border-style:dashed}
+.chart{height:90px;border:1px solid var(--line);border-radius:8px;background:
+ linear-gradient(transparent 49%,var(--line) 50%,transparent 51%)}
+.chart svg{width:100%;height:100%}
+.warn{background:color-mix(in srgb,var(--warn) 18%,transparent);border-radius:8px;padding:6px 8px;color:var(--warn)}
+ul.t{padding-left:1.1rem} ul.t li{margin:.25em 0}
+.arch{display:grid;gap:8px}
+.arch div{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 14px}
+.arch b{display:block;color:var(--rust);font-size:.85rem}
+.ph-list{counter-reset:f}
+.ph-list .card{position:relative;padding-left:56px;margin-bottom:10px}
+.ph-list .card::before{counter-increment:f;content:counter(f);position:absolute;left:16px;top:14px;width:26px;height:26px;border-radius:50%;background:var(--rust);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.85rem}
+footer{margin-top:48px;color:var(--mute);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <img src="UTECorroe-icono.svg" alt="Icono de UTECorroe: logo de UTEC en metal con óxido desde arriba, sobre fondo blanco">
+  <div>
+    <h1>UTEC<b>orroe</b></h1>
+    <p class="sub">Plan de diseño de la app Android · Cámara de corrosión inteligente · PIC1 2026 · Grupo 17</p>
+    <p class="sub">Borrador v0 · basado en los ADR 0001–0012 · rama <code>UI-Design</code></p>
+  </div>
+</header>
+
+<nav>
+  <a href="#identidad">1 Identidad</a><a href="#adr">2 Qué piden los ADR</a><a href="#nav">3 Navegación</a>
+  <a href="#pantallas">4 Pantallas</a><a href="#estados">5 Estados y errores</a><a href="#arq">6 Arquitectura</a>
+  <a href="#fases">7 Fases</a><a href="#abiertos">8 Puntos abiertos</a>
+</nav>
+
+<section id="identidad">
+  <h2><span>1</span>Identidad: nombre e icono</h2>
+  <p class="lead">El nombre juega con lo que mide la cámara: <b>UTEC</b> + <b>corroe</b>. El icono toma el logo de UTEC Uruguay y lo cuenta como lo que le pasa a un metal dentro de la cámara.</p>
+  <div class="grid">
+    <div class="card">
+      <h3 style="margin-top:0">Icono</h3>
+      <p>Las 12 barras del logo oficial (<code>utec_logo.svg</code>, celeste <code>#00AEEF</code>) en <b>metal cepillado</b> sobre fondo blanco, con <b>óxido que baja desde arriba</b> y se apaga hacia el centro: lo de arriba está corroído y lo de abajo todavía no.</p>
+      <ul class="t">
+        <li>Fuente: <code>docs/UTECorroe-icono.svg</code> (512×512), construido sobre el trazado de <code>utec_logo.svg</code>.</li>
+        <li>Para Android hay que exportar a <b>icono adaptativo</b>: primer plano = logo sin fondo, fondo = blanco, más versión monocromática (Android 13+). Los filtros SVG no se pueden usar tal cual en un <code>VectorDrawable</code>; se rasteriza a PNG por densidad o se arma el óxido con formas.</li>
+        <li>El logo debe quedar dentro de la zona segura (66 % central) del icono adaptativo.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Paleta</h3>
+      <div class="sw">
+        <div><i style="background:#8a939c"></i>Metal <code>#8A939C</code></div>
+        <div><i style="background:#4a525a"></i>Acero oscuro <code>#4A525A</code></div>
+        <div><i style="background:#b4501c"></i>Óxido (acción) <code>#B4501C</code></div>
+        <div><i style="background:#e7a36f"></i>Óxido claro <code>#E7A36F</code></div>
+        <div><i style="background:#00AEEF"></i>Celeste UTEC (acento) <code>#00AEEF</code></div>
+      </div>
+      <p class="lead" style="margin-top:12px">El celeste sale del logo oficial (<code>#00AEEF</code>); los demás hex son propuestas. Estados de salud (OK / aviso / error) en verde, ámbar y rojo, nunca en óxido, para no confundir "acción" con "problema".</p>
+    </div>
+  </div>
+  <h3>Tono visual</h3>
+  <ul class="t">
+    <li>Material 3 sobre Jetpack Compose (ya en <code>build.gradle.kts</code>) con un <code>ColorScheme</code> propio: superficie metálica gris clara, botón primario en óxido, celeste para enlaces, progreso y estado "conectado".</li>
+    <li>Textura sutil (metal cepillado) solo en la barra superior y la pantalla de inicio. En las pantallas de datos, fondo plano: se lee primero el número.</li>
+    <li>Tema claro y oscuro. El laboratorio puede tener poca luz y es una app de monitoreo largo.</li>
+    <li>Textos en español rioplatense (la app ya está en <code>strings.xml</code>).</li>
+  </ul>
+</section>
+
+<section id="adr">
+  <h2><span>2</span>Qué piden los ADR a la interfaz</h2>
+  <p class="lead">Cada decisión técnica aceptada se traduce en una obligación de diseño. Los ADR en estado <i>Propuesto</i> están marcados porque pueden mover pantallas.</p>
+  <div class="tw"><table>
+    <tr><th>ADR</th><th>Decisión</th><th>Consecuencia en la UI</th></tr>
+    <tr><td>0003</td><td>El inicio solo recibe duración; la temperatura se observa, no se fija</td><td>Nunca mostrar un campo "temperatura objetivo". La temperatura es una lectura en vivo y una serie del historial.</td></tr>
+    <tr><td>0004</td><td>Historial en Room dentro del teléfono; el ESP32 guarda 2 ensayos para sincronizar</td><td>Pantalla de historial con detalle, gráficos y exportar CSV. Sincronizar al conectar, con aviso de huecos y de "pérdida de hasta 10 min por corte de energía".</td></tr>
+    <tr><td>0005</td><td>Firmware de prueba BLE aparte</td><td>La app actual (parpadeo de LED) se conserva como pantalla oculta de diagnóstico hasta que la integración funcione.</td></tr>
+    <tr><td>0006</td><td>Operaciones atómicas, recetas JSON ≤ 4 KB, protocolo NUS por líneas, una conexión BLE a la vez</td><td><b>Editor de recetas</b> (pasos y ciclos de un nivel), carga con CRC y progreso, pantalla de progreso alimentada por eventos <code>ev,…</code>, control manual, calibración. Manejar "ya hay otro teléfono conectado".</td></tr>
+    <tr><td>0006</td><td>Concentración objetivo (5 % NaCl, ASTM B117)</td><td>El usuario ingresa % y la app muestra gramos y ml resultantes. Advertir cuando los pasos manuales en g/ml no den la concentración buscada.</td></tr>
+    <tr><td>0007 · 0009 · 0010</td><td>Electroválvula, sinfín con paso a paso, bomba 5 V y tubo perforado</td><td>Cada operación de la receta es un bloque con su ícono y sus límites por dosis. Paso opcional de limpieza de agujas.</td></tr>
+    <tr><td>0008 <span class="pill p">Propuesto</span></td><td>Alimentación 12 V y cargas</td><td>Sin impacto directo. Si cambia el hardware, puede aparecer un estado de energía.</td></tr>
+    <tr><td>0011</td><td>Electrodos de grafito, calibración con 3 soluciones (0 / 2,5 / 5 %)</td><td>Asistente de calibración de conductividad. La compensación por temperatura se registra junto a cada muestra.</td></tr>
+    <tr><td>0012 <span class="pill p">Propuesto</span></td><td>Volumen por tiempo de bomba + reeds; el depósito de agua limpia no tiene sensor</td><td>Telemetría con volumen estimado. La app lleva la cuenta del depósito limpio y avisa "falta agua" por estimación. La capacidad lleno-vacío alimenta advertencias del editor.</td></tr>
+  </table></div>
+</section>
+
+<section id="nav">
+  <h2><span>3</span>Navegación</h2>
+  <p class="lead">Cuatro destinos en la barra inferior, más el flujo de conexión como puerta de entrada.</p>
+  <div class="grid">
+    <div class="card"><b>Cámara</b><br>Panel en vivo: estado, temperatura, conductividad, volumen, progreso del ensayo, botón Detener. Es la pantalla de inicio.</div>
+    <div class="card"><b>Recetas</b><br>Biblioteca guardada en la app (el ESP32 solo tiene una) y editor. "Subir y ejecutar" empuja la receta al equipo.</div>
+    <div class="card"><b>Historial</b><br>Ensayos pasados con gráficos y exportación CSV. Sincronización con el ESP32.</div>
+    <div class="card"><b>Ajustes</b><br>Calibración (agua, sal, conductividad), diagnóstico (modo de prueba BLE), tema, acerca de.</div>
+  </div>
+  <h3>Flujo de conexión</h3>
+  <ol class="t">
+    <li>Permisos BLE de Android 12+ explicados antes de pedirlos.</li>
+    <li>Escaneo filtrado por el servicio NUS; si hay un solo equipo se conecta; si hay varios, lista con nombre y señal.</li>
+    <li>Al conectar: negociar MTU alta, <code>estado,json</code>, y <code>historial,&lt;n&gt;</code> para sincronizar lo que falte. Mostrar "Sincronizando… 340/1200".</li>
+    <li>Recordar el último equipo y reconectar solo; la barra superior muestra siempre el estado del enlace.</li>
+  </ol>
+</section>
+
+<section id="pantallas">
+  <h2><span>4</span>Pantallas clave</h2>
+  <p class="lead">Wireframes de baja fidelidad para acordar estructura, no estilo final.</p>
+  <div class="phones">
+
+    <div class="ph"><b>Cámara · ensayo en curso</b>
+      <div class="scr">
+        <div class="top"><img src="UTECorroe-icono.svg" alt="">UTECorroe<span class="dot"></span></div>
+        <div class="body">
+          <div><b>Acero vs aluminio, 48 h</b><br><small>Paso 4/5 · ciclo 12 de 48 · bomba</small></div>
+          <div class="prog"><i></i></div>
+          <small>20 h 12 min transcurridas · faltan 27 h 48 min</small>
+          <div class="m">
+            <div><small>Temperatura</small><strong>27,4 °C</strong></div>
+            <div><small>Conductividad</small><strong>5,1 %</strong></div>
+            <div><small>Volumen est.</small><strong>1,8 L</strong></div>
+            <div><small>Tanque</small><strong>Medio</strong></div>
+          </div>
+          <div class="chart"><svg viewBox="0 0 200 90" preserveAspectRatio="none"><polyline fill="none" stroke="#00AEEF" stroke-width="2" points="0,60 30,55 60,52 90,48 120,50 150,44 200,42"/></svg></div>
+          <div class="btn o">Detener ensayo</div>
+        </div>
+        <div class="bar"><span class="on">Cámara</span><span>Recetas</span><span>Historial</span><span>Ajustes</span></div>
+      </div>
+    </div>
+
+    <div class="ph"><b>Editor de receta</b>
+      <div class="scr">
+        <div class="top"><img src="UTECorroe-icono.svg" alt="">Nueva receta</div>
+        <div class="body">
+          <div class="step"><span>Nombre</span><b>Acero vs aluminio</b></div>
+          <div class="step"><span>💧 Agua</span><b>hasta lleno</b></div>
+          <div class="step"><span>🧂 Sal</span><b>5 % NaCl</b></div>
+          <div class="warn">5 % ⇒ 5,26 g por cada 100 ml. Con 1,2 L: 63 g.</div>
+          <div class="step"><span>🔁 Ciclo</span><b>× 48</b></div>
+          <div class="step in"><span>Bomba</span><b>10 min</b></div>
+          <div class="step in"><span>Esperar</span><b>50 min</b></div>
+          <div class="step"><span>🔔 Aviso</span><b>3 s</b></div>
+          <small>Tamaño 0,6 / 4 KB · duración 48 h</small>
+          <div class="btn">Subir y ejecutar</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ph"><b>Historial · detalle</b>
+      <div class="scr">
+        <div class="top"><img src="UTECorroe-icono.svg" alt="">Ensayo #7</div>
+        <div class="body">
+          <div><b>Acero vs aluminio, 48 h</b><br><small>12 oct 2026 · 5 % NaCl · calibración v3</small></div>
+          <div class="chart"><svg viewBox="0 0 200 90" preserveAspectRatio="none"><polyline fill="none" stroke="#b4501c" stroke-width="2" points="0,70 40,50 80,58 120,40 160,46 200,30"/></svg></div>
+          <div class="chart"><svg viewBox="0 0 200 90" preserveAspectRatio="none"><polyline fill="none" stroke="#00AEEF" stroke-width="2" points="0,50 50,48 100,46 150,47 200,45"/></svg></div>
+          <div class="warn">Hueco de 8 min (corte de energía, 14:02).</div>
+          <small>2 880 muestras · 1 por minuto</small>
+          <div class="btn">Exportar CSV</div>
+        </div>
+        <div class="bar"><span>Cámara</span><span>Recetas</span><span class="on">Historial</span><span>Ajustes</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Otras pantallas (sin wireframe todavía)</h3>
+  <ul class="t">
+    <li><b>Conexión:</b> pasos del flujo de la sección 3, estado vacío con el logo y texto "Encendé la cámara y acercate".</li>
+    <li><b>Control manual:</b> <code>nivel(agua,…)</code>, <code>nivel(sal,…)</code>, bomba, mezclar, con unidades físicas y la concentración resultante.</li>
+    <li><b>Calibración:</b> tres asistentes (ml/s de la válvula, pasos por gramo del sinfín, tabla de conductividad con 3 soluciones). Cada uno guía el procedimiento y guarda con <code>calibrar(…)</code>.</li>
+    <li><b>Diagnóstico:</b> consola de líneas crudas NUS y el parpadeo de LED de la prueba de concepto. Útil para depurar sin nRF Connect.</li>
+  </ul>
+</section>
+
+<section id="estados">
+  <h2><span>5</span>Estados y errores que la interfaz tiene que decir claro</h2>
+  <div class="tw"><table>
+    <tr><th>Situación</th><th>Origen</th><th>Qué ve el usuario</th></tr>
+    <tr><td>Teléfono desconectado durante un ensayo</td><td>BLE</td><td>Banner "El ensayo sigue en la cámara". Reconexión automática y sincronización al volver. No es un error.</td></tr>
+    <tr><td>Ya hay otro teléfono conectado</td><td>ADR 0006</td><td>"La cámara tiene otra conexión activa. Cerrala en el otro teléfono."</td></tr>
+    <tr><td>Dosis terminó con motivo <code>lleno</code></td><td><code>ev,dosis</code></td><td>Aviso informativo, no error: "Se cortó el agua al llenarse el tanque (pedido 800 ml, real 620 ml)".</td></tr>
+    <tr><td>Ensayo abortado: tanque vacío, <code>detener</code>, fallo</td><td><code>ev,abort,&lt;motivo&gt;</code></td><td>Tarjeta roja con el motivo, el momento y el progreso alcanzado. El ensayo queda en el historial como incompleto.</td></tr>
+    <tr><td>Reinicio de la cámara a mitad de ensayo</td><td><code>ev,abort,reinicio</code></td><td>"Se cortó la energía. Por seguridad no se retoma solo." Con opción de iniciar uno nuevo.</td></tr>
+    <tr><td>Receta rechazada</td><td><code>err,&lt;código&gt;,…</code></td><td>Mensaje en lenguaje llano y el paso culpable resaltado en el editor.</td></tr>
+    <tr><td>Conductividad no coincide con lo esperado</td><td>ADR 0006/0011</td><td>Indicador ámbar: el sensor verifica pero no corrige. Mostrar cuánto se desvía.</td></tr>
+    <tr><td>Falta agua en el depósito limpio</td><td>Estimación, ADR 0012</td><td>Aviso por cuenta de volumen, sin sensor. Se confirma a mano.</td></tr>
+  </table></div>
+</section>
+
+<section id="arq">
+  <h2><span>6</span>Arquitectura de la app</h2>
+  <p class="lead">Sobre lo que ya existe: Kotlin, Compose, Kable. Se reemplaza el <code>BlinkViewModel</code> por capas con una responsabilidad cada una.</p>
+  <div class="arch">
+    <div><b>UI · Compose</b>Pantallas sin lógica; observan <code>StateFlow</code> y mandan intenciones.</div>
+    <div><b>ViewModels</b><code>ConnectionVM</code>, <code>LiveVM</code>, <code>RecipeEditorVM</code>, <code>HistoryVM</code>, <code>CalibrationVM</code>.</div>
+    <div><b>Dominio</b>Modelo de receta y validador (límites por operación, 4 KB, <code>sal conc</code> exige <code>agua lleno</code> antes), conversión concentración↔gramos, y reductor de eventos <code>ev,…</code> a estado del ensayo.</div>
+    <div><b>Protocolo</b>Codificador/decodificador de líneas NUS, fragmentado según la MTU, carga de receta con CRC32, cola de órdenes con espera de <code>ok</code>/<code>err</code>. Probable de testear en JVM sin teléfono.</div>
+    <div><b>Transporte BLE · Kable</b>Escaneo por UUID NUS, conexión, MTU, escritura con respuesta en RX, notificaciones de TX, reconexión.</div>
+    <div><b>Persistencia · Room</b><code>Ensayo</code>, <code>Muestra</code> (clave ensayo+secuencia, deduplicación), <code>Receta</code>, <code>Calibracion</code>.</div>
+  </div>
+  <h3>Modelo de datos mínimo</h3>
+  <ul class="t">
+    <li><b>Ensayo:</b> id, nombre, receta usada (copia JSON), concentración, calibración vigente, inicio absoluto, estado (en curso / completo / abortado + motivo).</li>
+    <li><b>Muestra:</b> ensayoId, seq, segundos desde inicio, temperatura, conductividad, volumen. La hora absoluta se calcula, no se guarda cruda (ADR 0004).</li>
+  </ul>
+</section>
+
+<section id="fases">
+  <h2><span>7</span>Fases propuestas</h2>
+  <div class="ph-list">
+    <div class="card"><b>Identidad y esqueleto.</b> Nombre, icono adaptativo, tema Material 3, navegación inferior con pantallas vacías. No necesita firmware.</div>
+    <div class="card"><b>Protocolo NUS.</b> Cambiar <code>BleConstants.kt</code> a los UUID de NUS, capa de líneas y diagnóstico. Depende de que el firmware integre BLE (ADR 0005/0006).</div>
+    <div class="card"><b>Panel en vivo.</b> Telemetría <code>t,…</code>, eventos, progreso, Detener. Primero contra un firmware simulado.</div>
+    <div class="card"><b>Historial.</b> Room, sincronización con <code>historial,&lt;n&gt;</code>, detalle con gráficos, CSV.</div>
+    <div class="card"><b>Recetas.</b> Editor con validación y advertencias de concentración, carga con CRC, biblioteca.</div>
+    <div class="card"><b>Calibración y pulido.</b> Asistentes, estados de error, pruebas en banco, accesibilidad.</div>
+  </div>
+  <p class="lead">Las fases 1, 3 y 4 se pueden avanzar con un <b>simulador de la cámara</b> (un fake del transporte que emita líneas del protocolo), sin esperar el hardware.</p>
+</section>
+
+<section id="abiertos">
+  <h2><span>8</span>Puntos abiertos</h2>
+  <ul class="t">
+    <li><b>Unidad de la duración</b> (segundos u horas) y sintaxis final del comando: la deja abierta el ADR 0003. Afecta al editor y al <code>inicio</code> rápido.</li>
+    <li><b>Estado de los ADR 0008 y 0012</b> (Propuestos): si 0012 no se acepta, el volumen estimado y el aviso de depósito desaparecen de la telemetría.</li>
+    <li><b>Una receta o biblioteca:</b> el ADR 0006 deja una sola receta en el ESP32; esta propuesta pone la biblioteca en la app.</li>
+    <li><b>Logo:</b> confirmar si hay restricciones de uso de la marca de UTEC para un proyecto de curso.</li>
+    <li><b>Ensayo "rápido":</b> mantener o no el atajo <code>inicio(segundos)</code> como botón para pruebas.</li>
+    <li><b>Idiomas:</b> solo español, salvo que pidan inglés para la entrega.</li>
+    <li><b>Registrar el nombre:</b> si se acepta UTECorroe, anotarlo en un ADR nuevo (0013) con la identidad visual.</li>
+  </ul>
+</section>
+
+<footer>UTECorroe · plan de diseño v0 · generado a partir de <code>ADR/</code> el 2026-11-03. Los wireframes son ilustrativos.</footer>
+</div>
+</body>
+</html>

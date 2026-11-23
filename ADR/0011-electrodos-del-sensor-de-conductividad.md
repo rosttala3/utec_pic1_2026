@@ -60,4 +60,8 @@ los electrodos caseros no dan lecturas estables.
   (`PIN_COND`, GPIO 34) y pasa a una rutina de medición con dos GPIO de
   excitación más el ADC. Los umbrales `UMBRAL_SAL_ON/OFF` se recalibran.
 - Hay que reservar dos GPIO de salida para la excitación.
+- El sensor quedó con **3 cables**: electrodo A (GPIO de excitación), electrodo B resist
+  (GPIO de excitación, que entra a la resistencia en serie con el 2.º electrodo) y electrodo B
+  (toma directa de ese electrodo, al ADC en GPIO 34). El ADC lee entre la solución y la
+  resistencia; la métrica es `v/(4095−v)`, proporcional a la conductancia.
 - Los electrodos se enjuagan con agua limpia al terminar cada ensayo.

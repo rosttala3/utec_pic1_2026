@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estado del firmware · UTECorroe</title>
+<style>
+:root{--bg:#f6f8fa;--card:#fff;--fg:#1b2430;--mut:#5b6877;--line:#d9e0e7;--acc:#0a6fb8;--ok:#1a7f45;--warn:#b26a00;--err:#b3261e;--okbg:#e4f4ea;--warnbg:#fdf1dc;--errbg:#fbe5e3}
+@media (prefers-color-scheme:dark){:root{--bg:#10161d;--card:#18212b;--fg:#e4e9ee;--mut:#98a5b3;--line:#2a3745;--acc:#5db3f0;--ok:#5fd08a;--warn:#f0b050;--err:#ff8a80;--okbg:#17301f;--warnbg:#33260e;--errbg:#3a1a18}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.6rem;margin:.2em 0}h2{font-size:1.2rem;margin:2em 0 .6em;border-bottom:1px solid var(--line);padding-bottom:.3em}
+p.lead{color:var(--mut);margin-top:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:12px 0}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:.92rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--bg);color:var(--mut);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+tr:last-child td{border-bottom:0}
+code{font:.88em ui-monospace,monospace;background:var(--bg);padding:1px 5px;border-radius:4px}
+.tag{display:inline-block;font-size:.75rem;font-weight:600;padding:1px 8px;border-radius:99px;white-space:nowrap}
+.ok{background:var(--okbg);color:var(--ok)}.warn{background:var(--warnbg);color:var(--warn)}.err{background:var(--errbg);color:var(--err)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.tbl{overflow-x:auto}
+ul{padding-left:1.2em;margin:.4em 0}li{margin:.25em 0}
+.pins{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media (max-width:700px){.pins{grid-template-columns:1fr}}
+.note{color:var(--mut);font-size:.88rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Estado del firmware de la cámara</h1>
+<p class="lead">ESP32 DevKit V1 · core Arduino-ESP32 3.3.12 · carpeta <code>Firmware/CamaraCorrosion/</code> · actualizado el 23/11/2026. Todo está sin commitear.</p>
+
+<div class="card">
+<strong>Resumen.</strong> El firmware completo está escrito y pasa un chequeo de sintaxis con <code>-Wall</code> usando el compilador xtensa del core. <span class="tag warn">No se compiló ni enlazó con arduino-cli, no se probó en la placa</span>.
+Lo que queda es compilar en el IDE, confirmar tres pines y los niveles lógicos con el cableado real, y calibrar en banco.
+</div>
+
+<h2>1. Qué hace hoy</h2>
+<div class="grid">
+<div class="card"><strong>Comunicación</strong><ul>
+<li>Un mismo parser para UART (115200) y BLE Nordic UART, nombre <code>PIC1-ESP32</code>.</li>
+<li>Cola de líneas desde los callbacks BLE; respuestas troceadas según el MTU.</li>
+<li>Sintaxis tolerante: minúsculas, sin espacios, <code>f(a,b)</code> ≡ <code>f,a,b</code>.</li></ul></div>
+<div class="card"><strong>Ensayo automático</strong><ul>
+<li><code>ensayo,&lt;conc %&gt;,&lt;duración s&gt;,&lt;muestreo s&gt;</code></li>
+<li>Llenado hasta el reed de lleno → 90 % de la sal con el sinfín → mezcla y ajuste por conductividad (±0,15 %, hasta 6 correcciones) → bomba la duración pedida.</li>
+<li>Abortos: <code>tanque_vacio</code>, <code>llenado</code>, <code>conc_alta</code>, <code>no_converge</code>, <code>sensor</code>, <code>sensores</code>, <code>detener</code>, <code>reinicio</code>.</li></ul></div>
+<div class="card"><strong>Datos</strong><ul>
+<li>Muestras en LittleFS, un archivo por ensayo, se guardan los 2 últimos; buffer de 10 muestras.</li>
+<li><code>historial,&lt;n&gt;</code> reenvía lo faltante y termina con <code>ev,sync_fin</code>.</li>
+<li>Calibración en NVS (<code>Preferences</code>, espacio <code>camara</code>).</li>
+<li>Corte de luz en pleno ensayo: no retoma, avisa <code>ev,abort,reinicio</code>.</li></ul></div>
+<div class="card"><strong>Operaciones atómicas <span class="tag ok">nuevo</span></strong><ul>
+<li><code>actuar(valvula|mezclador|bomba,on|off)</code></li>
+<li><code>actuar(sinfin,&lt;pasos&gt;|parar)</code>, negativo = reversa, máx. 20000</li>
+<li><code>actuar(led_verde|led_rojo,on|off|auto)</code>, <code>actuar(buzzer,&lt;hz&gt;,&lt;ms&gt;)</code></li>
+<li>Seguridad: solo sin ensayo; relés se apagan a los 60 s; la válvula se cierra con el reed de lleno y no abre si ya está lleno; la bomba no arranca con el tanque vacío; <code>detener</code> apaga todo; <code>ensayo</code> se rechaza con algo manual encendido.</li>
+<li>Evento <code>ev,manual_fin,&lt;actuador&gt;,&lt;lleno|vacio|tiempo&gt;</code>. <code>estado,json</code> informa <code>act</code>, <code>reed_lleno</code> y <code>reed_vacio</code>.</li></ul></div>
+</div>
+
+<h2>2. Mapeo de pines actual</h2>
+<p class="note">Rótulos de la serigrafía de la placa (Dn = GPIO n). Fuente: <code>Config.h</code>. Los marcados como provisorios no figuran en los ADR ni en el diagrama y los elegí yo.</p>
+<div class="tbl"><table>
+<thead><tr><th>Pin</th><th>Función</th><th>Tipo</th><th>Origen</th><th>Estado</th></tr></thead>
+<tbody>
+<tr><td><code>D4</code></td><td>DS18B20 (temperatura, OneWire)</td><td>E/S</td><td>Entrega 2</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D34</code></td><td>Sensor de conductividad, cable <strong>electrodo B</strong> (directo del 2.º electrodo) al ADC</td><td>Entrada (solo entrada)</td><td>ADR 0001 / 0011</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D32</code></td><td>Sensor de conductividad, cable <strong>electrodo A</strong> (excitación)</td><td>Salida</td><td>ADR 0011 pide 2 GPIO, no dice cuáles</td><td><span class="tag warn">provisorio</span></td></tr>
+<tr><td><code>D33</code></td><td>Sensor de conductividad, cable <strong>electrodo B resist</strong> (excitación, entra a la resistencia en serie)</td><td>Salida</td><td>ADR 0011</td><td><span class="tag warn">provisorio</span></td></tr>
+<tr><td><code>D15</code></td><td>Reed de nivel lleno</td><td>Entrada, pull-up</td><td>ADR 0001</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D2</code></td><td>Reed de nivel vacío</td><td>Entrada, pull-up</td><td>ADR 0001</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D12</code></td><td>LED verde</td><td>Salida</td><td>ADR 0001</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D14</code></td><td>LED rojo</td><td>Salida</td><td>Entrega 2</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D13</code></td><td>Buzzer</td><td>Salida</td><td>Entrega 2</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D18</code></td><td>Relé 1: electroválvula 12 V</td><td>Salida</td><td>ADR 0007 (antes servo de agua)</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D21</code></td><td>Relé 2: mezclador</td><td>Salida</td><td>ADR 0008</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D22</code></td><td>Relé 3: bomba de aspersión</td><td>Salida</td><td>ADR 0008</td><td><span class="tag ok">definido</span></td></tr>
+<tr><td><code>D19</code></td><td>Sinfín: <strong>IN1</strong> del ULN2003 (motor 28BYJ-48)</td><td>Salida</td><td>ADR 0009 / 0008</td><td><span class="tag warn">provisorio</span></td></tr>
+<tr><td><code>D23</code></td><td>Sinfín: <strong>IN2</strong> del ULN2003</td><td>Salida</td><td>—</td><td><span class="tag warn">provisorio</span></td></tr>
+<tr><td><code>D25</code></td><td>Sinfín: <strong>IN3</strong> del ULN2003</td><td>Salida</td><td>—</td><td><span class="tag warn">provisorio</span></td></tr>
+<tr><td><code>D26</code></td><td>Sinfín: <strong>IN4</strong> del ULN2003</td><td>Salida</td><td>—</td><td><span class="tag warn">provisorio</span></td></tr>
+</tbody></table></div>
+
+<div class="card">
+<strong>Cosas a mirar en el cableado</strong>
+<ul>
+<li><code>D12</code> y <code>D2</code> son pines de arranque (strapping). Con el LED y el reed conectados normalmente no molestan, pero si algo los fuerza a alto al encender la placa puede no arrancar (ADR 0001).</li>
+<li><code>D34</code> no tiene pull-up interno; el divisor de los electrodos lo fija por hardware.</li>
+<li>Los pines D32/D33 pueden cambiarse por cualquiera libre de salida (no D34–D39). D19, D23, D25 y D26 también (el orden IN1 a IN4 importa: si el motor vibra sin girar, probá intercambiar IN2 e IN3).</li>
+</ul></div>
+
+<div class="card"><strong>Sensor de conductividad (3 cables)</strong>
+<pre style="margin:.5em 0;overflow-x:auto">D32 ── electrodo A ──── solución ──── electrodo B ──┬── D34 (ADC)
+                                                      │
+D33 ── electrodo B resist ──── resistencia R ─────────┘</pre>
+<ul><li>Fase 1: D32 alto, D33 bajo. Fase 2: D32 bajo, D33 alto. Así la corriente neta es cero y no hay electrólisis (ADR 0011).</li>
+<li>El ADC lee en el electrodo B, entre la solución y R. La lectura normalizada, <code>v = 4095·R/(R+Rsol)</code>, crece con la sal; la métrica es <code>v/(4095−v)</code> ∝ conductancia.</li>
+<li>Si el cableado real es otro (por ejemplo la resistencia del lado A), hay que cambiar solo <code>leerMetricaCruda()</code>.</li></ul></div>
+
+<h3>Polaridades supuestas (<code>Config.h</code>)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Señal</th><th>Supuesto</th><th>Si el hardware es distinto</th></tr></thead>
+<tbody>
+<tr><td>Módulos relé</td><td>Activos en alto (<code>RELE_ON = HIGH</code>)</td><td>Pasar a <code>LOW</code>. Se nota porque todo arranca encendido.</td></tr>
+<tr><td>Reeds</td><td>Contacto cerrado = LOW (pull-up interno)</td><td>Cambiar <code>REED_ACTIVO</code>.</td></tr>
+<tr><td>Sinfín (28BYJ-48 + ULN2003)</td><td>IN1..IN4 en el orden de las bobinas, medio paso, sin ENABLE</td><td>Si vibra sin girar, cambiar el orden de pines; si gira al revés, invertir el signo de los pasos o el orden.</td></tr>
+<tr><td>Conversión de electrodos</td><td>Resistencia entre <em>B resist</em> y <em>B</em>; ADC en <em>B</em></td><td>Ajustar <code>leerMetricaCruda()</code> en <code>Sensores.h</code>.</td></tr>
+</tbody></table></div>
+
+<h2>3. Qué falta</h2>
+<div class="grid">
+<div class="card"><strong>Antes de cargar <span class="tag err">bloquea</span></strong><ul>
+<li>Compilar en Arduino IDE o arduino-cli (nunca se enlazó; puede haber errores de librería o de tamaño de partición).</li>
+<li>Confirmar D32, D33, D19, D23, D25 y D26 contra el diagrama eléctrico real.</li>
+<li>Verificar polaridad de relés y reeds, y el orden IN1..IN4 del motor.</li>
+</ul></div>
+<div class="card"><strong>Calibración en banco <span class="tag warn">sin tocar código</span></strong><ul>
+<li><code>calibrar(cap,&lt;ml&gt;)</code>: volumen entre vacío y lleno (defecto 1200).</li>
+<li><code>calibrar(agua,&lt;ml/s&gt;)</code>: caudal de la válvula (defecto 20).</li>
+<li><code>calibrar(sal,&lt;pasos/g&gt;)</code>: pasos del sinfín por gramo (defecto 100).</li>
+<li><code>calibrar(cond,&lt;%&gt;)</code> con 0 %, 2,5 % y 5 %: curva de conductividad. Sin ≥2 puntos, <code>ensayo</code> responde <code>err,sin_calibrar</code>.</li>
+<li>Velocidad del sinfín (<code>US_POR_PASO</code>, 2 ms por medio paso = 500 pasos/s; ~4096 por vuelta): ajustar si pierde pasos. El ULN2003 va a 5 V; el 28BYJ-48 tiene par bajo, verificar que mueva la sal.</li>
+</ul></div>
+<div class="card"><strong>Pendiente de software</strong><ul>
+<li>App: transporte BLE real (hoy solo hay simulador) y pantalla de calibración.</li>
+<li>Pruebas en placa de: reinicio a mitad de ensayo, sincronización con BLE real, persistencia en LittleFS.</li>
+<li>Sin watchdog de hardware ni protección ante pérdida de BLE durante el ensayo (sigue solo, por diseño).</li>
+<li>Sin límite de tiempo propio para la fase de llenado más allá del aborto <code>llenado</code>: validar el valor.</li>
+<li>El ajuste de concentración asume mezcla homogénea tras 420 s: confirmar con el mezclador real.</li>
+<li>ADR 0013 (ensayo reemplaza a las recetas) y actualizar <code>plan-diseno-UTECorroe.html</code>.</li>
+</ul></div>
+</div>
+
+<h2>4. Estructura de archivos</h2>
+<div class="tbl"><table>
+<thead><tr><th>Archivo</th><th>Contenido</th></tr></thead>
+<tbody>
+<tr><td><code>CamaraCorrosion.ino</code></td><td><code>setup()</code> y <code>loop()</code></td></tr>
+<tr><td><code>Config.h</code></td><td>Pines, polaridades, límites, UUID BLE</td></tr>
+<tr><td><code>Ajustes.h</code></td><td>Calibración en NVS, curva de conductividad</td></tr>
+<tr><td><code>Sensores.h</code></td><td>Reeds, DS18B20, conductividad (excitación alterna, compensación por temperatura)</td></tr>
+<tr><td><code>Actuadores.h</code></td><td>Relés, sinfín paso a paso no bloqueante, buzzer</td></tr>
+<tr><td><code>Enlace.h</code></td><td>UART y BLE NUS</td></tr>
+<tr><td><code>Historial.h</code></td><td>Muestras en LittleFS y sincronización</td></tr>
+<tr><td><code>Ensayo.h</code></td><td>Máquina de estados, dosificación manual, operaciones atómicas, LEDs</td></tr>
+<tr><td><code>Comandos.h</code></td><td>Parser, errores, <code>estado,json</code>, calibración, <code>actuar</code></td></tr>
+<tr><td><code>README.md</code></td><td>Órdenes y procedimiento de calibración</td></tr>
+</tbody></table></div>
+</main>
+</body>
+</html>

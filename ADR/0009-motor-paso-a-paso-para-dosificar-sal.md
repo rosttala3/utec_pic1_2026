@@ -29,3 +29,4 @@ directo desde GPIO.
 - Hay que medir y documentar la calibración gramos/vuelta. La sal húmeda se
   apelmaza y cambia la entrega; conviene repetir la calibración.
 - Alimentación y driver según [0008](0008-alimentacion-12v-y-accionamiento-de-cargas.md).
+- Se usa el 28BYJ-48 con driver ULN2003: cuatro pines (IN1 a IN4), secuencia de medio paso por firmware y sin pin ENABLE (se apagan las bobinas al terminar).
